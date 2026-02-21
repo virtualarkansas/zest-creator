@@ -1,9 +1,9 @@
 {
-  "name": "zipembed",
+  "name": "zest",
   "version": "1.0.0",
-  "description": "Create interactive Canvas content with ZipEmbed — quizzes, labs, simulations with auto/teacher grading and state persistence",
+  "description": "Create interactive Canvas content with Zest — quizzes, labs, simulations with auto/teacher grading and state persistence",
   "author": {
     "name": "Kyle Yancey"
   },
-  "keywords": ["canvas", "lti", "education", "interactive", "zipembed"]
+  "keywords": ["canvas", "lti", "education", "interactive", "zest"]
 }

@@ -1,19 +1,19 @@
 ---
 name: bridge-api
-description: ZipEmbed Bridge API reference. Use when writing JavaScript that calls ZipEmbed.submitScore(), ZipEmbed.submitWork(), ZipEmbed.saveState(), ZipEmbed.loadState(), or any other ZipEmbed.* method. Also use when building interactive content for Canvas LTI.
+description: Zest Bridge API reference. Use when writing JavaScript that calls Zest.submitScore(), Zest.submitWork(), Zest.saveState(), Zest.loadState(), or any other Zest.* method. Also use when building interactive content for Canvas LTI.
 user-invocable: false
 ---
 
-# ZipEmbed Bridge API
+# Zest Bridge API
 
-The Bridge API is a JavaScript library that content creators include in their interactive content. It provides a standard interface for communicating with the ZipEmbed LTI wrapper inside Canvas.
+The Bridge API is a JavaScript library that content creators include in their interactive content. It provides a standard interface for communicating with the Zest LTI wrapper inside Canvas.
 
 ## Include
 
 Every content file must include this script tag in `<head>`:
 
 ```html
-<script src="https://lti.testyturtle.dev/public/zipembed-bridge.js"></script>
+<script src="https://lti.testyturtle.dev/public/zest-bridge.js"></script>
 ```
 
 ## Critical Constraints
@@ -21,52 +21,52 @@ Every content file must include this script tag in `<head>`:
 1. **`confirm()`, `alert()`, `prompt()` are BLOCKED** in cross-origin iframes (Canvas embeds from a different origin). They silently return `false`/`undefined`. Use two-click confirmation patterns instead.
 2. **Canvas CSS prevents iframe resize** for assignment external tools. Content scrolls within the iframe. `setHeight()` only works for page embeds.
 3. **Content must be self-contained** — all CSS and JS inline or bundled in the zip. The bridge script is the only external dependency.
-4. **All methods require context** — most methods only work after `onReady()` fires. Always wrap initialization in `ZipEmbed.onReady()`.
+4. **All methods require context** — most methods only work after `onReady()` fires. Always wrap initialization in `Zest.onReady()`.
 
 ---
 
 ## Context Methods
 
-### ZipEmbed.getUser()
+### Zest.getUser()
 Returns the current user's context. Returns `null` if not in an LTI context.
 ```javascript
-const user = ZipEmbed.getUser();
+const user = Zest.getUser();
 // { id, name, email, roles, courseId, courseTitle, assignmentId }
 ```
 
-### ZipEmbed.isStudent()
+### Zest.isStudent()
 ```javascript
-if (ZipEmbed.isStudent()) { /* show student view */ }
+if (Zest.isStudent()) { /* show student view */ }
 ```
 
-### ZipEmbed.isTeacher()
+### Zest.isTeacher()
 ```javascript
-if (ZipEmbed.isTeacher()) { /* show teacher/admin view */ }
+if (Zest.isTeacher()) { /* show teacher/admin view */ }
 ```
 
-### ZipEmbed.onReady(callback)
+### Zest.onReady(callback)
 Fires when LTI context is received from the wrapper. If context is already available, fires immediately. **Always use this as your entry point.**
 ```javascript
-ZipEmbed.onReady(function(ctx) {
+Zest.onReady(function(ctx) {
   console.log('User:', ctx.name);
   console.log('Course:', ctx.courseTitle);
   // Initialize your content here
 });
 ```
 
-### ZipEmbed.isReady()
+### Zest.isReady()
 Returns `true` if context has been received.
 
 ---
 
 ## Grading Methods
 
-### ZipEmbed.submitScore(score, options) — Auto-Graded
+### Zest.submitScore(score, options) — Auto-Graded
 
 Submits a score that appears immediately in the Canvas gradebook. Use for quizzes, auto-checked exercises, and anything the content can grade itself.
 
 ```javascript
-const result = await ZipEmbed.submitScore(85, {
+const result = await Zest.submitScore(85, {
   maxScore: 100,           // Optional, default 100
   artifacts: {             // Optional — arbitrary JSON stored for teacher review
     answers: { q1: 'A', q2: 'B', q3: 'C' },
@@ -79,12 +79,12 @@ const result = await ZipEmbed.submitScore(85, {
 
 **Canvas behavior**: Score appears immediately in gradebook as 85/100. Teacher can view artifacts in SpeedGrader via review.html.
 
-### ZipEmbed.submitWork(options) — Teacher-Graded
+### Zest.submitWork(options) — Teacher-Graded
 
 Submits student work without a score. Gradebook shows "Submitted" and the teacher assigns a grade manually in SpeedGrader.
 
 ```javascript
-const result = await ZipEmbed.submitWork({
+const result = await Zest.submitWork({
   artifacts: {             // Arbitrary JSON — teacher sees this in review.html
     hypothesis: 'Plants grow faster with more light',
     data: [/* experiment results */],
@@ -110,19 +110,19 @@ const result = await ZipEmbed.submitWork({
 
 ## Review Mode Methods
 
-### ZipEmbed.isReviewMode()
+### Zest.isReviewMode()
 Returns `true` when the teacher is viewing this content in SpeedGrader.
 ```javascript
-if (ZipEmbed.isReviewMode()) {
-  const sub = ZipEmbed.getSubmission();
+if (Zest.isReviewMode()) {
+  const sub = Zest.getSubmission();
   // Render student's submitted data for teacher review
 }
 ```
 
-### ZipEmbed.getSubmission()
+### Zest.getSubmission()
 In review mode, returns the student's submitted data.
 ```javascript
-const sub = ZipEmbed.getSubmission();
+const sub = Zest.getSubmission();
 // { score, maxScore, artifacts, comment, submittedAt, userId, userName }
 // score/maxScore are null for teacher-graded (submitWork) submissions
 ```
@@ -131,13 +131,13 @@ const sub = ZipEmbed.getSubmission();
 
 ## UI Methods
 
-### ZipEmbed.setHeight(pixels)
+### Zest.setHeight(pixels)
 Reports content height for auto-resize. Sends `lti.frameResize` to Canvas.
 
 **Note**: Only works for **page embeds** (deep link html mode). Has **no effect on assignment external tools** due to Canvas CSS `!important` limitation. For assignments, content scrolls within the iframe.
 
 ```javascript
-ZipEmbed.setHeight(document.body.scrollHeight + 40);
+Zest.setHeight(document.body.scrollHeight + 40);
 ```
 
 ---
@@ -148,11 +148,11 @@ Three-tier storage: Memory (undo/redo) → localStorage (fast/offline) → Serve
 
 State is keyed by `contentId + assignmentId + userId` — same content in two different assignments = independent saves.
 
-### ZipEmbed.saveState(data)
+### Zest.saveState(data)
 Save work-in-progress. Writes to localStorage immediately, marks state as dirty for server sync (every 60 seconds). Pushes current state to undo stack and clears redo stack.
 
 ```javascript
-ZipEmbed.saveState({
+Zest.saveState({
   currentPhase: 3,
   answers: { q1: 'a', q2: 'b' },
   hypothesis: 'Plants grow faster with more light'
@@ -160,40 +160,40 @@ ZipEmbed.saveState({
 // No return value — fire and forget
 ```
 
-### ZipEmbed.loadState()
+### Zest.loadState()
 Load saved state. First call fetches from server and compares with localStorage — uses the newer one. Subsequent calls return from localStorage (fast).
 
 ```javascript
-const state = await ZipEmbed.loadState();
+const state = await Zest.loadState();
 if (state) {
   restoreForm(state);  // Rebuild UI from saved state
 }
 // Returns: data object or null (no saved state)
 ```
 
-### ZipEmbed.clearState()
+### Zest.clearState()
 Clear all saved state (localStorage, undo/redo stacks, and server). Used for "Start Over" / reset functionality.
 
 ```javascript
-await ZipEmbed.clearState();
+await Zest.clearState();
 ```
 
-### ZipEmbed.undo() / ZipEmbed.redo()
+### Zest.undo() / Zest.redo()
 In-memory only, per session. Max 50 entries.
 
 ```javascript
-const prev = ZipEmbed.undo();   // Previous state or null
-const next = ZipEmbed.redo();   // Next state or null
+const prev = Zest.undo();   // Previous state or null
+const next = Zest.redo();   // Next state or null
 ```
 
-### ZipEmbed.hasUnsyncedChanges()
+### Zest.hasUnsyncedChanges()
 Returns `true` if localStorage state differs from server.
 
-### ZipEmbed.onSyncStatus(callback)
+### Zest.onSyncStatus(callback)
 Fires with sync status changes. Use this to show a save indicator.
 
 ```javascript
-ZipEmbed.onSyncStatus(function(status) {
+Zest.onSyncStatus(function(status) {
   // status: 'synced' | 'dirty' | 'syncing' | 'error'
   var labels = {
     synced: 'Saved',
@@ -205,11 +205,11 @@ ZipEmbed.onSyncStatus(function(status) {
 });
 ```
 
-### ZipEmbed.syncNow()
+### Zest.syncNow()
 Force immediate server sync instead of waiting for the 60-second timer.
 
 ```javascript
-await ZipEmbed.syncNow();
+await Zest.syncNow();
 ```
 
 ---
@@ -219,9 +219,65 @@ await ZipEmbed.syncNow();
 - **Sync timer**: 60-second interval syncs dirty state to server via the embed wrapper
 - **MD5 hash**: Server compares hash to skip redundant writes
 - **beforeunload**: On tab close, bridge sends state to wrapper which fires `navigator.sendBeacon`
-- **localStorage key**: `zipembed-state-{contentId}-{assignmentId}-{userId}`
+- **localStorage key**: `zest-state-{contentId}-{assignmentId}-{userId}`
 - **Size limit**: 10 MB per state
 - **Undo/redo**: In-memory only, max 50 entries, cleared on page reload
+
+---
+
+## Answer Key Methods (Review Mode Only)
+
+### Zest.getAnswerKey()
+Returns the answer key data from the content's `.secure/` directory, if one was declared in `zest.json`. Only available in **review mode** (SpeedGrader). Returns `null` in student mode or if no answer key exists.
+
+```javascript
+if (Zest.isReviewMode()) {
+  var key = Zest.getAnswerKey();
+  if (key) {
+    // key is the parsed JSON from the answer key file
+    // e.g., { q1: 'b', q2: 'c', q3: 'a' }
+    highlightCorrectAnswers(key);
+  }
+}
+```
+
+**How it works**: The answer key file (declared via `"answerKey"` in `zest.json`) is extracted to a `.secure/` directory during upload. This directory is never served to students. In review mode, the server loads the answer key and includes it in the `zest-context` postMessage.
+
+---
+
+## Parameter Methods
+
+Parameters are defined in `zest.json` and set per-placement by teachers during embedding. They allow the same content to behave differently in different assignments (e.g., different difficulty levels, time limits, or question sets).
+
+### Zest.getParameters()
+Returns the full parameters object for this placement, or `null` if no parameters were set.
+
+```javascript
+Zest.onReady(function(ctx) {
+  var params = Zest.getParameters();
+  if (params) {
+    console.log('Difficulty:', params.difficulty);
+    console.log('Time limit:', params.timeLimit);
+  }
+});
+```
+
+### Zest.getParameter(key, defaultValue)
+Get a single parameter value with a fallback default.
+
+```javascript
+var difficulty = Zest.getParameter('difficulty', 'medium');
+var timeLimit = Zest.getParameter('timeLimit', 30);
+var showHints = Zest.getParameter('showHints', true);
+```
+
+**How parameters are set**: Teachers configure parameter values when embedding content via the picker UI. Values are stored as LTI custom variables (`zest_param_<key>`) so each placement (assignment) can have different values for the same content.
+
+**Type coercion**: Parameter values are automatically coerced based on the type declared in `zest.json`:
+- `"select"` → string
+- `"number"` → number (parseFloat)
+- `"boolean"` → boolean
+- `"text"` → string
 
 ---
 
@@ -230,7 +286,7 @@ await ZipEmbed.syncNow();
 Always handle submission failures with retry capability:
 
 ```javascript
-ZipEmbed.submitScore(score, { artifacts: data })
+Zest.submitScore(score, { artifacts: data })
   .then(function(result) {
     if (result.success) {
       submitBtn.textContent = 'Submitted!';
